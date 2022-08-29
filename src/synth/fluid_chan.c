@@ -87,7 +87,7 @@ fluid_channel_init(fluid_channel_t *chan)
     /*---*/
     chan->key_mono_sustained = INVALID_NOTE; /* No previous mono note sustained */
     chan->legatomode = FLUID_CHANNEL_LEGATO_MODE_MULTI_RETRIGGER;		/* Default mode */
-    chan->portamentomode = FLUID_CHANNEL_PORTAMENTO_MODE_LEGATO_ONLY;	/* Default mode */
+    chan->portamentomode = FLUID_CHANNEL_PORTAMENTO_MODE_EACH_NOTE;	/* Default mode */
     /*--- End of poly/mono initialization --------------------------------------*/
 
     chan->channel_type = (chan->channum == 9) ? CHANNEL_TYPE_DRUM : CHANNEL_TYPE_MELODIC;

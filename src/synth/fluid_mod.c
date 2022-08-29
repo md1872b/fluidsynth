@@ -435,7 +435,7 @@ fluid_mod_get_value(fluid_mod_t *mod, fluid_voice_t *voice)
               return (fluid_real_t) mod->amount * (127 - voice->vel) / 127;
             }
         */
-        return 0; // (fluid_real_t) mod->amount / 2.0;
+        //return 0; // (fluid_real_t) mod->amount / 2.0;
     }
 
 // end S. Christian Collins' mod

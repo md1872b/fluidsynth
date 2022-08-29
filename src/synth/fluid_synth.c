@@ -338,13 +338,14 @@ fluid_synth_init(void)
                           | FLUID_MOD_UNIPOLAR                /* P=0 */
                           | FLUID_MOD_NEGATIVE                /* D=1 */
                          );
-    fluid_mod_set_source2(&default_vel2filter_mod, FLUID_MOD_VELOCITY, /* Index=2 */
-                          FLUID_MOD_GC                                 /* CC=0 */
-                          | FLUID_MOD_SWITCH                           /* type=3 */
-                          | FLUID_MOD_UNIPOLAR                         /* P=0 */
-                          // do not remove       | FLUID_MOD_NEGATIVE                         /* D=1 */
-                          | FLUID_MOD_POSITIVE                         /* D=0 */
-                         );
+    fluid_mod_set_source2(&default_vel2filter_mod, 0, 0); /* no second source */
+    //fluid_mod_set_source2(&default_vel2filter_mod, FLUID_MOD_VELOCITY, /* Index=2 */
+    //                      FLUID_MOD_GC                                 /* CC=0 */
+    //                      | FLUID_MOD_SWITCH                           /* type=3 */
+    //                      | FLUID_MOD_UNIPOLAR                         /* P=0 */
+    //                      // do not remove       | FLUID_MOD_NEGATIVE                         /* D=1 */
+    //                      | FLUID_MOD_POSITIVE                         /* D=0 */
+    //                     );
     fluid_mod_set_dest(&default_vel2filter_mod, GEN_FILTERFC);        /* Target: Initial filter cutoff */
     fluid_mod_set_amount(&default_vel2filter_mod, -2400);
 
@@ -2757,6 +2758,18 @@ static int
 fluid_synth_update_channel_pressure_LOCAL(fluid_synth_t *synth, int chan)
 {
     return fluid_synth_modulate_voices_LOCAL(synth, chan, 0, FLUID_MOD_CHANNELPRESSURE);
+}
+
+int
+fluid_synth_channel_reset(fluid_synth_t *synth, int chan) 
+{
+    if (chan < synth->midi_channels) {
+        fluid_channel_reset(synth->channel[chan]);
+        return FLUID_OK;
+    }
+
+    return FLUID_FAILED;
+        
 }
 
 /**

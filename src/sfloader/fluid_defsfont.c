@@ -1260,12 +1260,18 @@ delete_fluid_preset_zone(fluid_preset_zone_t *zone)
 static int fluid_preset_zone_create_voice_zones(fluid_preset_zone_t *preset_zone)
 {
     fluid_inst_zone_t *inst_zone;
+    fluid_inst_zone_t *global_inst_zone;
     fluid_sample_t *sample;
     fluid_voice_zone_t *voice_zone;
     fluid_zone_range_t *irange;
     fluid_zone_range_t *prange = &preset_zone->range;
+    fluid_zone_range_t *grange = &preset_zone->range;   //falback to preset range
 
     fluid_return_val_if_fail(preset_zone->inst != NULL, FLUID_FAILED);
+    
+    global_inst_zone = fluid_inst_get_global_zone(preset_zone->inst);
+    if (global_inst_zone != NULL)
+        grange = &global_inst_zone->range;
 
     inst_zone = fluid_inst_get_zone(preset_zone->inst);
 
@@ -1298,6 +1304,14 @@ static int fluid_preset_zone_create_voice_zones(fluid_preset_zone_t *preset_zone
         voice_zone->range.keyhi = (prange->keyhi < irange->keyhi) ? prange->keyhi : irange->keyhi;
         voice_zone->range.vello = (prange->vello > irange->vello) ? prange->vello : irange->vello;
         voice_zone->range.velhi = (prange->velhi < irange->velhi) ? prange->velhi : irange->velhi;
+
+        // the global instrument zone data is ignored. instead, we want to apply that
+        // so the final range (key, velocity) is given by the intersection of: 
+        // instrument range, global instrument range, preset range
+        voice_zone->range.keylo = (grange->keylo > voice_zone->range.keylo) ? grange->keylo : voice_zone->range.keylo;
+        voice_zone->range.keyhi = (grange->keyhi < voice_zone->range.keyhi) ? grange->keyhi : voice_zone->range.keyhi;
+        voice_zone->range.vello = (grange->vello > voice_zone->range.vello) ? grange->vello : voice_zone->range.vello;
+        voice_zone->range.velhi = (grange->velhi < voice_zone->range.velhi) ? grange->velhi : voice_zone->range.velhi;
         voice_zone->range.ignore = FALSE;
 
         preset_zone->voice_zone = fluid_list_append(preset_zone->voice_zone, voice_zone);

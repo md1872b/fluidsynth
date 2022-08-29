@@ -137,6 +137,8 @@ FLUIDSYNTH_API int fluid_midi_event_get_text(fluid_midi_event_t *evt,
         void **data, int *size);
 FLUIDSYNTH_API int fluid_midi_event_set_lyrics(fluid_midi_event_t *evt,
         void *data, int size, int dynamic);
+FLUIDSYNTH_API int fluid_midi_event_get_sysex(fluid_midi_event_t *evt, 
+        void **data, int *size);
 FLUIDSYNTH_API int fluid_midi_event_get_lyrics(fluid_midi_event_t *evt,
         void **data, int *size);
 /* @} */

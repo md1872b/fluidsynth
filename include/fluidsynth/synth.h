@@ -95,6 +95,7 @@ int fluid_synth_get_program(fluid_synth_t *synth, int chan, int *sfont_id,
 FLUIDSYNTH_API int fluid_synth_unset_program(fluid_synth_t *synth, int chan);
 FLUIDSYNTH_API int fluid_synth_program_reset(fluid_synth_t *synth);
 FLUIDSYNTH_API int fluid_synth_system_reset(fluid_synth_t *synth);
+FLUIDSYNTH_API int fluid_synth_channel_reset(fluid_synth_t *synth, int chan);
 
 FLUIDSYNTH_API int fluid_synth_all_notes_off(fluid_synth_t *synth, int chan);
 FLUIDSYNTH_API int fluid_synth_all_sounds_off(fluid_synth_t *synth, int chan);

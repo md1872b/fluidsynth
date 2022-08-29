@@ -1391,6 +1391,15 @@ static void fluid_midi_event_set_sysex_LOCAL(fluid_midi_event_t *evt, int type, 
     evt->param2 = dynamic;
 }
 
+int fluid_midi_event_get_sysex(fluid_midi_event_t *evt, void **data, int *size)
+{
+    fluid_return_val_if_fail(evt != NULL, FLUID_FAILED);
+    fluid_return_val_if_fail(evt->type == MIDI_SYSEX, FLUID_FAILED);
+
+    fluid_midi_event_get_sysex_LOCAL(evt, data, size);
+    return FLUID_OK;
+}
+
 static void fluid_midi_event_get_sysex_LOCAL(fluid_midi_event_t *evt, void **data, int *size)
 {
     if(data)

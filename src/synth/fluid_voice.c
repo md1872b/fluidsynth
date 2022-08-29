@@ -198,7 +198,8 @@ static void fluid_voice_initialize_rvoice(fluid_voice_t *voice, fluid_real_t out
                               0xffffffff, 0.0f, 0.0f, -1.0f, 1.0f);
 
     param[0].i = FLUID_IIR_LOWPASS;
-    param[1].i = 0;
+    //fix to sound like polyphone
+    param[1].i = 0; //FLUID_IIR_NO_GAIN_AMP; // | FLUID_IIR_Q_ZERO_OFF;
     fluid_iir_filter_init(&voice->rvoice->resonant_filter, param);
 
     param[0].i = FLUID_IIR_DISABLED;
@@ -804,14 +805,15 @@ fluid_voice_update_param(fluid_voice_t *voice, int gen)
 
     case GEN_REVERBSEND:
         /* The generator unit is 'tenths of a percent'. */
-        voice->reverb_send = x / 1000.0f;
+        //voice->gen[GEN_REVERBSEND].mod range is 0 - 2000
+        voice->reverb_send = (voice->gen[GEN_REVERBSEND].val * voice->gen[GEN_REVERBSEND].mod / 10000000.0f);
         fluid_clip(voice->reverb_send, 0.f, 1.f);
         UPDATE_RVOICE_BUFFERS_AMP(fluid_rvoice_buffers_set_amp, 2, fluid_voice_calculate_gain_amplitude(voice, voice->reverb_send));
         break;
 
     case GEN_CHORUSSEND:
         /* The generator unit is 'tenths of a percent'. */
-        voice->chorus_send = x / 1000.0f;
+        voice->chorus_send = (voice->gen[GEN_CHORUSSEND].val * voice->gen[GEN_CHORUSSEND].mod / 1000000.0f);
         fluid_clip(voice->chorus_send, 0.f, 1.f);
         UPDATE_RVOICE_BUFFERS_AMP(fluid_rvoice_buffers_set_amp, 3, fluid_voice_calculate_gain_amplitude(voice, voice->chorus_send));
         break;
@@ -1830,7 +1832,7 @@ fluid_voice_get_lower_boundary_for_attenuation(fluid_voice_t *voice)
     {
         lower_bound = 0;
     }
-
+    
     return lower_bound;
 }
 

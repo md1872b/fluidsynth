@@ -185,6 +185,14 @@ fluid_channel_init_ctrl(fluid_channel_t *chan, int is_all_ctrl_off)
     fluid_channel_set_cc(chan, EXPRESSION_MSB, 127);
     fluid_channel_set_cc(chan, EXPRESSION_LSB, 127);
 
+    for (i=0; i<128; i++) {
+        chan->drum_nrpn_pitch[i] = DRUM_INSTRUMENT_UNSET;
+        chan->drum_nrpn_level[i] = DRUM_INSTRUMENT_UNSET;
+        chan->drum_nrpn_pan[i] = DRUM_INSTRUMENT_UNSET;
+        chan->drum_nrpn_reverb[i] = DRUM_INSTRUMENT_UNSET;
+        chan->drum_nrpn_chorus[i] = DRUM_INSTRUMENT_UNSET;
+    }
+
     if(!is_all_ctrl_off)
     {
 

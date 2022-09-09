@@ -1829,6 +1829,31 @@ fluid_synth_cc_LOCAL(fluid_synth_t *synth, int channum, int num)
                 }
 
                 chan->nrpn_select = 0;  /* Reset to 0 */
+            } else {
+                switch (fluid_channel_get_cc(chan, NRPN_MSB)) {
+                    case 24:
+                        chan->drum_nrpn_pitch[fluid_channel_get_cc(chan, NRPN_LSB)] = (unsigned char)value;
+                        //FLUID_PRINTF("Setting nrpn pitch key %d val %d\n", fluid_channel_get_cc(chan, NRPN_LSB), value);
+                        break;
+                    case 26:
+                        chan->drum_nrpn_level[fluid_channel_get_cc(chan, NRPN_LSB)] = (unsigned char)value;
+                        //FLUID_PRINTF("Setting nrpn level key %d val %d\n", fluid_channel_get_cc(chan, NRPN_LSB), value);
+                        break;
+                    case 28:
+                        chan->drum_nrpn_pan[fluid_channel_get_cc(chan, NRPN_LSB)] = (unsigned char)value;
+                        //FLUID_PRINTF("Setting nrpn pan key %d val %d\n", fluid_channel_get_cc(chan, NRPN_LSB), value);
+                        break;
+                    case 29:
+                        chan->drum_nrpn_reverb[fluid_channel_get_cc(chan, NRPN_LSB)] = (unsigned char)value;
+                        //FLUID_PRINTF("Setting nrpn reverb key %d val %d\n", fluid_channel_get_cc(chan, NRPN_LSB), value);
+                        break;
+                    case 30:
+                        chan->drum_nrpn_chorus[fluid_channel_get_cc(chan, NRPN_LSB)] = (unsigned char)value;
+                        //FLUID_PRINTF("Setting nrpn chorus key %d val %d\n", fluid_channel_get_cc(chan, NRPN_LSB), value);
+                        break;
+
+                    break;
+                }
             }
         }
         else if(fluid_channel_get_cc(chan, RPN_MSB) == 0)      /* RPN is active: MSB = 0? */

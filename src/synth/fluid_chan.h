@@ -38,6 +38,8 @@
 */
 #define FLUID_CHANNEL_SIZE_MONOLIST  10
 
+#define DRUM_INSTRUMENT_UNSET 0xff
+
 /*
 
             The monophonic list
@@ -129,6 +131,12 @@ struct _fluid_channel_t
      * applied to future notes. They are copied to a voice's generators
      * in fluid_voice_init(), which calls fluid_gen_init().  */
     fluid_real_t gen[GEN_LAST];
+
+    unsigned char drum_nrpn_pitch[128];
+    unsigned char drum_nrpn_level[128];
+    unsigned char drum_nrpn_pan[128];
+    unsigned char drum_nrpn_reverb[128];
+    unsigned char drum_nrpn_chorus[128];
 };
 
 fluid_channel_t *new_fluid_channel(fluid_synth_t *synth, int num);

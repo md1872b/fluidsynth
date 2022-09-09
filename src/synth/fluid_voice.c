@@ -629,6 +629,9 @@ fluid_voice_calculate_runtime_synthesis_parameters(fluid_voice_t *voice)
      * initialisation list contains only GEN_XXX.
      */
 
+    voice->reverb_send = 0.0f;
+    voice->chorus_send = 0.0f;
+
     /* Calculate the voice parameter(s) dependent on each generator. */
     for(n = 0; n < FLUID_N_ELEMENTS(list_of_generators_to_initialize); n++)
     {
@@ -769,6 +772,13 @@ fluid_voice_update_param(fluid_voice_t *voice, int gen)
         voice->pan = fluid_voice_gen_value(voice, GEN_PAN);
         voice->balance = fluid_voice_gen_value(voice, GEN_CUSTOM_BALANCE);
 
+
+        if(voice->channel->channel_type == CHANNEL_TYPE_DRUM && 
+            voice->channel->drum_nrpn_pan[voice->key] < 0x80 &&
+            voice->channel->drum_nrpn_pan[voice->key] > 0x00) {
+            voice->pan =  (1000.0f / 127.0f * (fluid_real_t)voice->channel->drum_nrpn_pan[voice->key]) - 500.0f;
+        }
+
         /* left amp */
         UPDATE_RVOICE_BUFFERS_AMP(fluid_rvoice_buffers_set_amp, 0,
                                   fluid_voice_calculate_gain_amplitude(voice,
@@ -786,6 +796,11 @@ fluid_voice_update_param(fluid_voice_t *voice, int gen)
         /* Range: SF2.01 section 8.1.3 # 48
          * Motivation for range checking:
          * OHPiano.SF2 sets initial attenuation to a whooping -96 dB */
+
+        if(voice->channel->channel_type == CHANNEL_TYPE_DRUM && voice->channel->drum_nrpn_level[voice->key] < 0x80) {
+            voice->attenuation = 960.0f / 127.0f * ( 127 - voice->channel->drum_nrpn_level[voice->key]);
+        }
+
         fluid_clip(voice->attenuation, 0.f, 1440.f);
         UPDATE_RVOICE_R1(fluid_rvoice_set_attenuation, voice->attenuation);
         break;
@@ -800,20 +815,35 @@ fluid_voice_update_param(fluid_voice_t *voice, int gen)
         voice->pitch = (fluid_voice_gen_value(voice, GEN_PITCH)
                         + 100.0f * fluid_voice_gen_value(voice, GEN_COARSETUNE)
                         + fluid_voice_gen_value(voice, GEN_FINETUNE));
+
+        if(voice->channel->channel_type == CHANNEL_TYPE_DRUM && voice->channel->drum_nrpn_pitch[voice->key] < 0x80) {
+            voice->pitch +=  100.0 * ((int)voice->channel->drum_nrpn_pitch[voice->key] - 64);
+        }
+
         UPDATE_RVOICE_R1(fluid_rvoice_set_pitch, voice->pitch);
         break;
 
     case GEN_REVERBSEND:
         /* The generator unit is 'tenths of a percent'. */
         //voice->gen[GEN_REVERBSEND].mod range is 0 - 2000
-        voice->reverb_send = (voice->gen[GEN_REVERBSEND].val * voice->gen[GEN_REVERBSEND].mod / 10000000.0f);
+        
+        if(voice->channel->channel_type == CHANNEL_TYPE_DRUM && voice->channel->drum_nrpn_reverb[voice->key] < 0x80) {
+            voice->reverb_send = voice->channel->drum_nrpn_reverb[voice->key] / 127.0f;
+        } else {
+            voice->reverb_send = (voice->gen[GEN_REVERBSEND].val * voice->gen[GEN_REVERBSEND].mod / 10000000.0f);
+        }
         fluid_clip(voice->reverb_send, 0.f, 1.f);
         UPDATE_RVOICE_BUFFERS_AMP(fluid_rvoice_buffers_set_amp, 2, fluid_voice_calculate_gain_amplitude(voice, voice->reverb_send));
         break;
 
     case GEN_CHORUSSEND:
         /* The generator unit is 'tenths of a percent'. */
-        voice->chorus_send = (voice->gen[GEN_CHORUSSEND].val * voice->gen[GEN_CHORUSSEND].mod / 1000000.0f);
+        
+        if(voice->channel->channel_type == CHANNEL_TYPE_DRUM && voice->channel->drum_nrpn_chorus[voice->key] < 0x80) {
+            voice->chorus_send =  voice->channel->drum_nrpn_chorus[voice->key] / 127.0;
+        } else {
+            voice->chorus_send = (voice->gen[GEN_CHORUSSEND].val * voice->gen[GEN_CHORUSSEND].mod / 1000000.0f);
+        }
         fluid_clip(voice->chorus_send, 0.f, 1.f);
         UPDATE_RVOICE_BUFFERS_AMP(fluid_rvoice_buffers_set_amp, 3, fluid_voice_calculate_gain_amplitude(voice, voice->chorus_send));
         break;

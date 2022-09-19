@@ -284,11 +284,11 @@ fluid_mod_transform_source_value(fluid_real_t val, unsigned char mod_flags, cons
         break;
 
     case FLUID_MOD_LINEAR | FLUID_MOD_BIPOLAR | FLUID_MOD_POSITIVE: /* =2 */
-        val = -1.0f + 2.0f * val_norm;
+        val = (val == 64.0) ? 0.0f : ( -1.0f + 2.0f * val_norm);
         break;
 
     case FLUID_MOD_LINEAR | FLUID_MOD_BIPOLAR | FLUID_MOD_NEGATIVE: /* =3 */
-        val = 1.0f - 2.0f * val_norm;
+        val = (val == 64.0) ? 0.0f : ( 1.0f - 2.0f * val_norm);
         break;
 
     case FLUID_MOD_CONCAVE | FLUID_MOD_UNIPOLAR | FLUID_MOD_POSITIVE: /* =4 */

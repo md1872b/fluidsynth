@@ -305,9 +305,13 @@ fluid_concave(fluid_real_t val)
     else if(val >= (fluid_real_t)FLUID_VEL_CB_SIZE)
     {
         return 1.f;
+    } 
+    else if ((int)val == 127) 
+    {
+        return fluid_concave_tab[(int) val] ;
     }
-
-    return fluid_concave_tab[(int) val];
+    // interpolation between convex steps: fixes bad sounds with modenv and filter cutoff
+    return fluid_concave_tab[(int) val]  + (fluid_concave_tab[(int)val + 1] - fluid_concave_tab[(int) val] ) * (val - (int)val);
 }
 
 /*

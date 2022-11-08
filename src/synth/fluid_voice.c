@@ -773,6 +773,8 @@ fluid_voice_update_param(fluid_voice_t *voice, int gen)
 
     case GEN_PAN:
     case GEN_CUSTOM_BALANCE:
+    case GEN_REVERBSEND:
+    case GEN_CHORUSSEND:
         /* range checking is done in the fluid_pan and fluid_balance functions */
         voice->pan = fluid_voice_gen_value(voice, GEN_PAN);
         voice->balance = fluid_voice_gen_value(voice, GEN_CUSTOM_BALANCE);
@@ -793,17 +795,60 @@ fluid_voice_update_param(fluid_voice_t *voice, int gen)
         UPDATE_RVOICE_BUFFERS_AMP(fluid_rvoice_buffers_set_amp, DRY_R,
                                   fluid_voice_calculate_gain_amplitude(voice,
                                           fluid_pan(voice->pan, 0) * fluid_balance(voice->balance, 0)));
+
+        /*if (gen == GEN_PAN || gen == GEN_CUSTOM_BALANCE)
+        FLUID_PRINTF("Voice %3d Def %.3f Pan L %6.3f R %6.3f | Balance %6.3f %6.3f | Total %6.3f %6.3f \n", 
+        voice->id, voice->gen[GEN_PAN].val,
+        fluid_pan(voice->pan, 1), fluid_pan(voice->pan, 0) ,
+        fluid_balance(voice->balance, 1),  fluid_balance(voice->balance, 0),
+        fluid_pan(voice->pan, 1) * fluid_balance(voice->balance, 1), fluid_pan(voice->pan, 0) * fluid_balance(voice->balance, 0)
+        );*/
+            
+        /* The generator unit is 'tenths of a percent'. */
+        //voice->gen[GEN_REVERBSEND].mod range is 0 - 2000
+        
+        if(voice->channel->channel_type == CHANNEL_TYPE_DRUM && voice->channel->drum_nrpn_reverb[voice->key] < 0x80) {
+            voice->reverb_send = 0.15f * fluid_concave(voice->channel->drum_nrpn_reverb[voice->key]);
+        } else {
+            voice->reverb_send = (voice->gen[GEN_REVERBSEND].val * voice->gen[GEN_REVERBSEND].mod / 10000000.0f);
+        }
+        fluid_clip(voice->reverb_send, 0.f, 1.f);       
+        #ifdef STEREO_FX 
+        UPDATE_RVOICE_BUFFERS_AMP(fluid_rvoice_buffers_set_amp, REV_L, fluid_voice_calculate_gain_amplitude(voice,  
+                        voice->reverb_send * fluid_pan(voice->pan, 1) * fluid_balance(voice->balance, 1)));
+        UPDATE_RVOICE_BUFFERS_AMP(fluid_rvoice_buffers_set_amp, REV_R, fluid_voice_calculate_gain_amplitude(voice,  
+                        voice->reverb_send * fluid_pan(voice->pan, 0) * fluid_balance(voice->balance, 0)));
+        #else
+        UPDATE_RVOICE_BUFFERS_AMP(fluid_rvoice_buffers_set_amp, REV_L, fluid_voice_calculate_gain_amplitude(voice, voice->reverb_send));
+        #endif
+    
+        /* The generator unit is 'tenths of a percent'. */
+        
+        if(voice->channel->channel_type == CHANNEL_TYPE_DRUM && voice->channel->drum_nrpn_chorus[voice->key] < 0x80) {
+            voice->chorus_send = 0.15f * fluid_concave(voice->channel->drum_nrpn_chorus[voice->key]);
+        } else {
+            voice->chorus_send = (voice->gen[GEN_CHORUSSEND].val * voice->gen[GEN_CHORUSSEND].mod / 1000000.0f);
+        }
+        fluid_clip(voice->chorus_send, 0.f, 1.f);
+        #ifdef STEREO_FX
+        UPDATE_RVOICE_BUFFERS_AMP(fluid_rvoice_buffers_set_amp, CHO_L, fluid_voice_calculate_gain_amplitude(voice, 
+                voice->chorus_send * fluid_pan(voice->pan, 1) * fluid_balance(voice->balance, 1)));
+        UPDATE_RVOICE_BUFFERS_AMP(fluid_rvoice_buffers_set_amp, CHO_R, fluid_voice_calculate_gain_amplitude(voice, 
+                voice->chorus_send * fluid_pan(voice->pan, 0) * fluid_balance(voice->balance, 0)));
+        #else
+        UPDATE_RVOICE_BUFFERS_AMP(fluid_rvoice_buffers_set_amp, CHO_L, fluid_voice_calculate_gain_amplitude(voice, voice->chorus_send));
+        #endif
         break;
 
     case GEN_ATTENUATION:
-        voice->attenuation = x;
+        voice->attenuation = x + ((voice->channel->channel_type == CHANNEL_TYPE_DRUM) ? 0 : 10.0) ;
 
         /* Range: SF2.01 section 8.1.3 # 48
          * Motivation for range checking:
          * OHPiano.SF2 sets initial attenuation to a whooping -96 dB */
 
         if(voice->channel->channel_type == CHANNEL_TYPE_DRUM && voice->channel->drum_nrpn_level[voice->key] < 0x80) {
-            voice->attenuation = 960.0f / 127.0f * ( 127 - voice->channel->drum_nrpn_level[voice->key]);
+            voice->attenuation = FLUID_PEAK_ATTENUATION * fluid_concave(127.0 - voice->channel->drum_nrpn_level[voice->key]);
         }
 
         fluid_clip(voice->attenuation, 0.f, 1440.f);
@@ -826,45 +871,6 @@ fluid_voice_update_param(fluid_voice_t *voice, int gen)
         }
 
         UPDATE_RVOICE_R1(fluid_rvoice_set_pitch, voice->pitch);
-        break;
-
-    case GEN_REVERBSEND:
-        /* The generator unit is 'tenths of a percent'. */
-        //voice->gen[GEN_REVERBSEND].mod range is 0 - 2000
-        
-        if(voice->channel->channel_type == CHANNEL_TYPE_DRUM && voice->channel->drum_nrpn_reverb[voice->key] < 0x80) {
-            voice->reverb_send = voice->channel->drum_nrpn_reverb[voice->key] / 127.0f;
-        } else {
-            voice->reverb_send = (voice->gen[GEN_REVERBSEND].val * voice->gen[GEN_REVERBSEND].mod / 10000000.0f);
-        }
-        fluid_clip(voice->reverb_send, 0.f, 1.f);       
-        #ifdef STEREO_FX 
-        UPDATE_RVOICE_BUFFERS_AMP(fluid_rvoice_buffers_set_amp, REV_L, fluid_voice_calculate_gain_amplitude(voice,  
-                        voice->reverb_send * fluid_pan(voice->pan, 1) * fluid_balance(voice->balance, 1)));
-        UPDATE_RVOICE_BUFFERS_AMP(fluid_rvoice_buffers_set_amp, REV_R, fluid_voice_calculate_gain_amplitude(voice,  
-                        voice->reverb_send * fluid_pan(voice->pan, 0) * fluid_balance(voice->balance, 0)));
-        #else
-        UPDATE_RVOICE_BUFFERS_AMP(fluid_rvoice_buffers_set_amp, REV_L, fluid_voice_calculate_gain_amplitude(voice, voice->reverb_send));
-        #endif
-        break;
-
-    case GEN_CHORUSSEND:
-        /* The generator unit is 'tenths of a percent'. */
-        
-        if(voice->channel->channel_type == CHANNEL_TYPE_DRUM && voice->channel->drum_nrpn_chorus[voice->key] < 0x80) {
-            voice->chorus_send =  voice->channel->drum_nrpn_chorus[voice->key] / 127.0;
-        } else {
-            voice->chorus_send = (voice->gen[GEN_CHORUSSEND].val * voice->gen[GEN_CHORUSSEND].mod / 1000000.0f);
-        }
-        fluid_clip(voice->chorus_send, 0.f, 1.f);
-        #ifdef STEREO_FX
-        UPDATE_RVOICE_BUFFERS_AMP(fluid_rvoice_buffers_set_amp, CHO_L, fluid_voice_calculate_gain_amplitude(voice, 
-                voice->chorus_send * fluid_pan(voice->pan, 1) * fluid_balance(voice->balance, 1)));
-        UPDATE_RVOICE_BUFFERS_AMP(fluid_rvoice_buffers_set_amp, CHO_R, fluid_voice_calculate_gain_amplitude(voice, 
-                voice->chorus_send * fluid_pan(voice->pan, 0) * fluid_balance(voice->balance, 0)));
-        #else
-        UPDATE_RVOICE_BUFFERS_AMP(fluid_rvoice_buffers_set_amp, CHO_L, fluid_voice_calculate_gain_amplitude(voice, voice->chorus_send));
-        #endif
         break;
 
     case GEN_OVERRIDEROOTKEY:

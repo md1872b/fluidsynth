@@ -237,6 +237,12 @@ fluid_act2hz(fluid_real_t c)
     return 8.176f * FLUID_POW(2.f, c / 1200.f);
 }
 
+int fluid_pan_is_stereo(fluid_real_t c) {
+    if (c <= 50.f || c >= -50.f) 
+        return 0;
+    return 1;
+}
+
 /*
  * fluid_pan
  */

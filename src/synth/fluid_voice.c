@@ -776,7 +776,12 @@ fluid_voice_update_param(fluid_voice_t *voice, int gen)
     case GEN_REVERBSEND:
     case GEN_CHORUSSEND:
         /* range checking is done in the fluid_pan and fluid_balance functions */
-        voice->pan = fluid_voice_gen_value(voice, GEN_PAN);
+        if (fluid_pan_is_stereo(voice->gen[GEN_PAN].val)) {
+            voice->pan = fluid_voice_gen_value(voice, GEN_PAN);
+        } else {
+            voice->pan = (fluid_real_t)(voice->gen[GEN_PAN].val + 0.5f * voice->gen[GEN_PAN].mod + voice->gen[GEN_PAN].nrpn);
+        }
+        
         voice->balance = fluid_voice_gen_value(voice, GEN_CUSTOM_BALANCE);
 
 

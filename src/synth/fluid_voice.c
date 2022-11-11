@@ -199,7 +199,7 @@ static void fluid_voice_initialize_rvoice(fluid_voice_t *voice, fluid_real_t out
 
     param[0].i = FLUID_IIR_LOWPASS;
     //fix to sound like polyphone
-    param[1].i = 0; //FLUID_IIR_NO_GAIN_AMP; // | FLUID_IIR_Q_ZERO_OFF;
+    param[1].i = FLUID_IIR_NO_GAIN_AMP; //FLUID_IIR_NO_GAIN_AMP; // | FLUID_IIR_Q_ZERO_OFF;
     fluid_iir_filter_init(&voice->rvoice->resonant_filter, param);
 
     param[0].i = FLUID_IIR_DISABLED;

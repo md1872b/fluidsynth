@@ -7633,6 +7633,18 @@ fluid_synth_get_gen(fluid_synth_t *synth, int chan, int param)
     FLUID_API_RETURN(result);
 }
 
+int fluid_synth_set_master_volume(fluid_synth_t *synth, int chan, int master) 
+{
+    fluid_real_t normVal;
+    fluid_return_val_if_fail(master >= 0 && master < 16384, FLUID_FAILED);
+    FLUID_API_ENTRY_CHAN(FLUID_FAILED);
+
+    normVal = (fluid_real_t)master / (16383.0f);
+    //FLUID_PRINTF("Setting master level chan %d val %d val %f\n", chan, master, normVal);
+    synth->channel[chan]->master_level = normVal;
+    FLUID_API_RETURN(FLUID_OK);
+}
+
 /**
  * Handle MIDI event from MIDI router, used as a callback function.
  * @param data FluidSynth instance

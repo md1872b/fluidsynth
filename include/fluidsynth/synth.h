@@ -103,6 +103,7 @@ FLUIDSYNTH_API int fluid_synth_all_sounds_off(fluid_synth_t *synth, int chan);
 FLUIDSYNTH_API int fluid_synth_set_gen(fluid_synth_t *synth, int chan,
                                        int param, float value);
 FLUIDSYNTH_API float fluid_synth_get_gen(fluid_synth_t *synth, int chan, int param);
+FLUIDSYNTH_API int fluid_synth_set_master_volume(fluid_synth_t *synth, int chan, int master);
 /* @} MIDI Channel Messages */
 
 

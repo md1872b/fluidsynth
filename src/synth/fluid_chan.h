@@ -137,6 +137,8 @@ struct _fluid_channel_t
     unsigned char drum_nrpn_pan[128];
     unsigned char drum_nrpn_reverb[128];
     unsigned char drum_nrpn_chorus[128];
+
+    fluid_real_t master_level;
 };
 
 fluid_channel_t *new_fluid_channel(fluid_synth_t *synth, int num);

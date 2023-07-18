@@ -856,6 +856,8 @@ fluid_voice_update_param(fluid_voice_t *voice, int gen)
             voice->attenuation = FLUID_PEAK_ATTENUATION * fluid_concave(127.0 - voice->channel->drum_nrpn_level[voice->key]);
         }
 
+        voice->attenuation += (voice->channel->master_level < 0.005f ) ? (FLUID_PEAK_ATTENUATION ) : 
+                   (0.825f * FLUID_PEAK_ATTENUATION * fluid_concave(127.0 * (1.0 -  voice->channel->master_level)));
         fluid_clip(voice->attenuation, 0.f, 1440.f);
         UPDATE_RVOICE_R1(fluid_rvoice_set_attenuation, voice->attenuation);
         break;
